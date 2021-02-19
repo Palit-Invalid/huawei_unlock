@@ -11,7 +11,7 @@
 #include <QLabel>
 #include <cstdio>
 
-//#include "encrypt_v1.h"
+#include "encrypt_v1.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

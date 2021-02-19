@@ -34,10 +34,10 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 INCLUDEPATH += "C:\Program Files\OpenSSL-Win64\include"
 
-#LIBS += "-LC:\Program Files\OpenSSL-Win64\lib"
-#LIBS += \
-#    -llibssl \
-#    -llibcrypto
+LIBS += "-LC:\Program Files\OpenSSL-Win64\lib"
+LIBS += \
+    -llibssl \
+    -llibcrypto
 
-#win32:QMAKE_CXXFLAGS -= -Zc:strictStrings
-#win32:QMAKE_CXXFLAGS += /Zc:strictStrings-
+win32:QMAKE_CXXFLAGS -= -Zc:strictStrings
+win32:QMAKE_CXXFLAGS += /Zc:strictStrings-

@@ -189,10 +189,10 @@ void MainWindow::updateModemInfo()
 }
 
 void MainWindow::encrypt_nck()
-{/*
+{
     char* datacard = "hwe620datacard";
     qDebug() << "NCK IMEI " << imei;
     char* imei_char = imei.toLatin1().data();
     encrypt_v1(imei_char, nck, datacard);
-    ui->nck->setText(QString(nck));*/
+    ui->nck->setText(QString(nck));
 }

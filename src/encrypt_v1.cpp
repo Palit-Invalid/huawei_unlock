@@ -1,4 +1,4 @@
-/*#include "encrypt_v1.h"
+#include "encrypt_v1.h"
 
 void encrypt_v1(char* imei, char* resbuf, char *hstr) {
     unsigned char xbytes[17];
@@ -30,4 +30,4 @@ void encrypt_v1(char* imei, char* resbuf, char *hstr) {
     i &= 0x3FFFFFF;
 
     sprintf(resbuf, "%i", i);
-}*/
+}
