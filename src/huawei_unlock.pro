@@ -41,3 +41,7 @@ win32: LIBS += -L$$PWD/../../../../../coding/openssl-1.1.1j-win64-mingw/lib/ -lc
 
 INCLUDEPATH += $$PWD/../../../../../coding/openssl-1.1.1j-win64-mingw/include
 DEPENDPATH += $$PWD/../../../../../coding/openssl-1.1.1j-win64-mingw/include
+
+
+
+unix:!macx: LIBS += -lssl -lcrypto

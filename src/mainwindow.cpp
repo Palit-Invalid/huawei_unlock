@@ -193,6 +193,6 @@ void MainWindow::encryptNck(const QString &imei, QString &nck)
 
 void MainWindow::unlock()
 {
-    QString query(" \"abc\" ");
-    qDebug() << query;
+    send_msg(QString("AT^CARDLOCK=\"%1\"").arg(1));
+    updateModemInfo();
 }

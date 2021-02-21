@@ -9,7 +9,6 @@
 #include <QRegExp>
 #include <QTimer>
 #include <QLabel>
-#include <cstdio>
 
 #include "encrypt_v1.h"
 
