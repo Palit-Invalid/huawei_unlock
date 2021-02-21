@@ -24,39 +24,29 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-    void showPortInfo(int idx);
-    void fillPortsInfo();
-    void updateSettings();
-    void send_msg(const QString &msg);
 
-    struct Settings {
-        QString name;
-        qint32 baudRate;
-        QString stringBaudRate;
-        QSerialPort::DataBits dataBits;
-        QString stringDataBits;
-        QSerialPort::Parity parity;
-        QString stringParity;
-        QSerialPort::StopBits stopBits;
-        QString stringStopBits;
-        QSerialPort::FlowControl flowControl;
-        QString stringFlowControl;
-    };
-    QString imei;
-    char* nck;
     enum status_modem {
         blocked = 1,
         unblocked   = 2,
         custom    = 3
     } status;
+
+    QString imei;
+    QString nck;
     int attempts_left;
+
+    void showPortInfo(int idx);
+    void fillPortsInfo();
+    void send_msg(const QString &msg);
+    void encryptNck(const QString &imei, QString &nck);
+    void showModemInfo();
+
 
 private:
     void showStatusMessage(const QString &message);
 
     Ui::MainWindow *ui;
     QSerialPort *m_serial = nullptr;
-    Settings m_currentSettings;
     QLabel *m_status = nullptr;
 
 private slots:
@@ -65,6 +55,6 @@ private slots:
     void parse_imei();
     void parse_status();
     void updateModemInfo();
-    void encrypt_nck();
+    void unlock();
 };
 #endif // MAINWINDOW_H

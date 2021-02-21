@@ -32,12 +32,12 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-INCLUDEPATH += "C:\Program Files\OpenSSL-Win64\include"
+DESTDIR = $$PWD/bin
 
-LIBS += "-LC:\Program Files\OpenSSL-Win64\lib"
-LIBS += \
-    -llibssl \
-    -llibcrypto
+#win32:QMAKE_CXXFLAGS -= -Zc:strictStrings
+#win32:QMAKE_CXXFLAGS += /Zc:strictStrings-
 
-win32:QMAKE_CXXFLAGS -= -Zc:strictStrings
-win32:QMAKE_CXXFLAGS += /Zc:strictStrings-
+win32: LIBS += -L$$PWD/../../../../../coding/openssl-1.1.1j-win64-mingw/lib/ -lcrypto -lssl
+
+INCLUDEPATH += $$PWD/../../../../../coding/openssl-1.1.1j-win64-mingw/include
+DEPENDPATH += $$PWD/../../../../../coding/openssl-1.1.1j-win64-mingw/include

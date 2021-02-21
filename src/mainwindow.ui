@@ -104,19 +104,6 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="update_button">
-    <property name="geometry">
-     <rect>
-      <x>530</x>
-      <y>10</y>
-      <width>81</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>UPDATE INFO</string>
-    </property>
-   </widget>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
@@ -241,17 +228,17 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPushButton" name="nck_button">
+   <widget class="QPushButton" name="unlockButton">
     <property name="geometry">
      <rect>
-      <x>440</x>
-      <y>220</y>
+      <x>380</x>
+      <y>210</y>
       <width>75</width>
       <height>23</height>
      </rect>
     </property>
     <property name="text">
-     <string>NCK</string>
+     <string>unlock</string>
     </property>
    </widget>
   </widget>

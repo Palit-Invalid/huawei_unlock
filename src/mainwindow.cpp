@@ -15,7 +15,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     fillPortsInfo();
     showPortInfo(0);
-    updateSettings();
     ui->statusbar->addWidget(m_status);
 
     connect(ui->serialPortListBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -24,10 +23,7 @@ MainWindow::MainWindow(QWidget *parent)
             this, SLOT(openSerialPort()));
     connect(ui->disconnect_button, SIGNAL(clicked()),
             this, SLOT(closeSerialPort()));
-    connect(ui->update_button, SIGNAL(clicked()),
-            this, SLOT(updateModemInfo()));
-    connect(ui->nck_button, SIGNAL(clicked()),
-            this, SLOT(encrypt_nck()));
+    connect(ui->unlockButton, SIGNAL(clicked()), this, SLOT(unlock()));
 }
 
 MainWindow::~MainWindow()
@@ -44,6 +40,28 @@ void MainWindow::showPortInfo(int idx)
     ui->locationLabel->setText(tr("Location: %1").arg(list.count() > 4 ? list.at(4) : tr(blankString)));
     ui->vidLabel->setText(tr("Vendor Identifier: %1").arg(list.count() > 5 ? list.at(5) : tr(blankString)));
     ui->pidLabel->setText(tr("Product Identifier: %1").arg(list.count() > 6 ? list.at(6) : tr(blankString)));
+}
+
+void MainWindow::showModemInfo()
+{
+    switch (status)
+    {
+        case unblocked:
+            ui->status->setText("UNBLOCKED");
+            break;
+        case blocked:
+            ui->status->setText("BLOCKED");
+            break;
+        case custom:
+            ui->status->setText("CUSTOM");
+            break;
+        default:
+            ui->status->setText(blankString);
+            break;
+    }
+    ui->attempts->setNum(attempts_left);
+    ui->nck->setText(nck);
+    ui->imei->setText(imei);
 }
 
 void MainWindow::fillPortsInfo()
@@ -72,44 +90,23 @@ void MainWindow::fillPortsInfo()
 
 void MainWindow::openSerialPort()
 {
-    updateSettings();
-    m_serial->setPortName(m_currentSettings.name);
-    m_serial->setBaudRate(m_currentSettings.baudRate);
-    m_serial->setDataBits(m_currentSettings.dataBits);
-    m_serial->setParity(m_currentSettings.parity);
-    m_serial->setStopBits(m_currentSettings.stopBits);
-    m_serial->setFlowControl(m_currentSettings.flowControl);
+    m_serial->setPortName(ui->serialPortListBox->currentText());
+    m_serial->setBaudRate(115200);
+    m_serial->setDataBits(static_cast<QSerialPort::DataBits>(8));
+    m_serial->setParity(static_cast<QSerialPort::Parity>(0));
+    m_serial->setStopBits(static_cast<QSerialPort::StopBits>(1));
+    m_serial->setFlowControl(static_cast<QSerialPort::FlowControl>(0));
 
-    if (m_serial->open(QIODevice::ReadWrite)) {
+    if (m_serial->open(QIODevice::ReadWrite))
+    {
         showStatusMessage(tr("Connected to %1 : %2, %3, %4, %5, %6")
-                          .arg(m_currentSettings.name).arg(m_currentSettings.stringBaudRate).arg(m_currentSettings.stringDataBits)
-                          .arg(m_currentSettings.stringParity).arg(m_currentSettings.stringStopBits).arg(m_currentSettings.stringFlowControl));
-        m_serial->clear();
-    } else {
+                          .arg(m_serial->portName()).arg(m_serial->baudRate()).arg(m_serial->dataBits())
+                          .arg(m_serial->parity()).arg(m_serial->stopBits()).arg(m_serial->flowControl()));
+        updateModemInfo();
+    } else
+    {
         showStatusMessage(tr("Open error"));
     }
-
-}
-
-void MainWindow::updateSettings()
-{
-    m_currentSettings.name = ui->serialPortListBox->currentText();
-
-    m_currentSettings.baudRate = 115200;
-
-    m_currentSettings.stringBaudRate = QString::number(m_currentSettings.baudRate);
-
-    m_currentSettings.dataBits = static_cast<QSerialPort::DataBits>(8);
-    m_currentSettings.stringDataBits = QString::number(m_currentSettings.dataBits);
-
-    m_currentSettings.parity = static_cast<QSerialPort::Parity>(0);
-    m_currentSettings.stringParity = QString::number(m_currentSettings.parity);
-
-    m_currentSettings.stopBits = static_cast<QSerialPort::StopBits>(1);
-    m_currentSettings.stringStopBits = QString::number(m_currentSettings.stopBits);
-
-    m_currentSettings.flowControl = static_cast<QSerialPort::FlowControl>(0);
-    m_currentSettings.stringFlowControl = QString::number(m_currentSettings.flowControl);
 }
 
 void MainWindow::closeSerialPort()
@@ -133,10 +130,12 @@ void MainWindow::parse_imei()
     QByteArray readData;
     while (m_serial->canReadLine()) {
         readData = m_serial->readLine();
-        if (re.exactMatch(QString(readData))) {
+        if (re.exactMatch(QString(readData)))
+        {
+            qDebug() << "ANSWER:\t" << QString(readData);
             imei = QString(readData);
             imei.remove(QRegExp("[\r\n]")); //remove /r and /n in end of string
-            ui->imei->setText(imei);
+            qDebug() << "PARSE:\t" << imei;
             break;
         }
     }
@@ -153,46 +152,47 @@ void MainWindow::parse_status()
     QByteArray readData;
     while (m_serial->canReadLine()) {
         readData = m_serial->readLine();
-        qDebug() << QString(readData);
-        if (re.exactMatch(QString(readData))) {
-            qDebug() << QString(readData);
+        if (re.exactMatch(QString(readData)))
+        {
+            qDebug() << "ANSWER:\t" << QString(readData);
             std::sscanf(QString(readData).toLocal8Bit(), "^CARDLOCK: %i, %i, 0\r\n", &status, &attempts_left);
             break;
         }
     }
-    switch (status)
-    {
-        case unblocked:
-            ui->status->setText("UNBLOCKED");
-            break;
-        case blocked:
-            ui->status->setText("BLOCKED");
-            break;
-        case custom:
-            ui->status->setText("CUSTOM");
-            break;
-    }
-    ui->attempts->setNum(attempts_left);
 }
 
 void MainWindow::updateModemInfo()
 {
     if(m_serial->isOpen())
     {
-        send_msg("AT^CARDLOCK?\r\n");
-        QTimer::singleShot(10, this, [this](){
-            parse_status();
-            send_msg("AT+CGSN\r\n");
-            QTimer::singleShot(10, this, SLOT(parse_imei()));
-        });
+        send_msg("AT+CGSN\r\n");
+        QTimer::singleShot(10, this, [this]()
+        {
+            parse_imei();
+            encryptNck(imei, nck);
+            send_msg("AT^CARDLOCK?\r\n");
+            QTimer::singleShot(10, this, [this]()
+            {
+                parse_status();
+                showModemInfo();
+            });
+         });
     }
 }
 
-void MainWindow::encrypt_nck()
+void MainWindow::encryptNck(const QString &imei, QString &nck)
 {
-    char* datacard = "hwe620datacard";
-    qDebug() << "NCK IMEI " << imei;
-    char* imei_char = imei.toLatin1().data();
-    encrypt_v1(imei_char, nck, datacard);
-    ui->nck->setText(QString(nck));
+    char nckbuf[40];    //buffer for NCK code
+    char imeibuf[16];   //buffer for IMEI
+    strncpy(imeibuf, imei.toLocal8Bit().data(), 15);
+
+    encrypt_v1(imeibuf, nckbuf, "hwe620datacard");
+    nck = QString::fromLocal8Bit(nckbuf);
+    qDebug() << "NCK:\t" << nck;
+}
+
+void MainWindow::unlock()
+{
+    QString query(" \"abc\" ");
+    qDebug() << query;
 }
