@@ -28,11 +28,11 @@ public:
         blocked = 1,
         unblocked   = 2,
         custom    = 3
-    } status;
+    } status = custom;
 
-    QString imei;
-    QString nck;
-    int attempts_left;
+    QString imei = "N/A";
+    QString nck = "N/A";
+    int attempts_left = -1;
 
     void showPortInfo(int idx);
     void fillPortsInfo();

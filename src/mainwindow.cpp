@@ -102,7 +102,10 @@ void MainWindow::openSerialPort()
         showStatusMessage(tr("Connected to %1 : %2, %3, %4, %5, %6")
                           .arg(m_serial->portName()).arg(m_serial->baudRate()).arg(m_serial->dataBits())
                           .arg(m_serial->parity()).arg(m_serial->stopBits()).arg(m_serial->flowControl()));
-        updateModemInfo();
+        QTimer::singleShot(20, this, [this]()
+        {
+            updateModemInfo();
+        });
     } else
     {
         showStatusMessage(tr("Open error"));
@@ -111,9 +114,18 @@ void MainWindow::openSerialPort()
 
 void MainWindow::closeSerialPort()
 {
-    if (m_serial->isOpen()) {
+    if (m_serial->isOpen())
+    {
         m_serial->close();
+        status = custom;
+        imei = "N/A";
+        nck = "N/A";
+        attempts_left = -1;
         showStatusMessage(tr("Disconnected"));
+        ui->attempts->setText(blankString);
+        ui->nck->setText(blankString);
+        ui->imei->setText(blankString);
+        ui->status->setText(blankString);
     }
 }
 
@@ -193,6 +205,10 @@ void MainWindow::encryptNck(const QString &imei, QString &nck)
 
 void MainWindow::unlock()
 {
-    send_msg(QString("AT^CARDLOCK=\"%1\"").arg(1));
-    updateModemInfo();
+    send_msg(QString("AT^CARDLOCK=\"%1\"").arg(nck));
+    QTimer::singleShot(10, this, [this]()
+    {
+        updateModemInfo();
+    });
+
 }
